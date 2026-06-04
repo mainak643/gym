@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080808">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MAINAK // FORGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080808;
+  --s1: #111111;
+  --s2: #191919;
+  --s3: #222222;
+  --red: #FF2020;
+  --red-glow: rgba(255,32,32,0.1);
+  --red-b: rgba(255,32,32,0.35);
+  --w: #FFFFFF;
+  --g1: #CCCCCC;
+  --g2: #888888;
+  --g3: #404040;
+  --bdr: #1E1E1E;
+  --fd: 'Bebas Neue', cursive;
+  --fm: 'DM Mono', monospace;
+  --fb: 'Barlow Condensed', sans-serif;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; }
+body {
+  background:var(--bg);
+  color:var(--w);
+  font-family:var(--fb);
+  max-width:430px;
+  margin:0 auto;
+  overflow-x:hidden;
+  padding-bottom:72px;
+}
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:9990;
+  opacity:0.03;
+}
+::-webkit-scrollbar { width:0; }
+
+/* HEADER */
+.hdr {
+  position:sticky; top:0; z-index:100;
+  background:rgba(8,8,8,0.94);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr);
+  padding:13px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.hdr-name { font-family:var(--fd); font-size:26px; letter-spacing:3px; line-height:1; }
+.hdr-name em { color:var(--red); font-style:normal; }
+.hdr-sub { font-family:var(--fm); font-size:9px; color:var(--g3); letter-spacing:2px; margin-top:3px; }
+.hdr-streak { display:flex; align-items:center; gap:7px; }
+.streak-dot { width:8px; height:8px; background:var(--red); border-radius:50%; animation:blink 2s infinite; flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+.streak-label { font-family:var(--fm); font-size:9px; color:var(--g2); letter-spacing:1px; }
+.streak-num { font-family:var(--fd); font-size:26px; color:var(--red); line-height:1; }
+
+/* NAV */
+.nav {
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:430px;
+  background:rgba(6,6,6,0.97);
+  backdrop-filter:blur(16px);
+  border-top:1px solid var(--bdr);
+  display:grid; grid-template-columns:repeat(4,1fr);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  z-index:200;
+}
+.ni {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:11px 8px 9px; cursor:pointer;
+  position:relative; transition:opacity 0.15s;
+}
+.ni::after {
+  content:''; position:absolute; top:0; left:25%; right:25%;
+  height:2px; background:var(--red);
+  transform:scaleX(0); transition:transform 0.2s;
+}
+.ni.active::after { transform:scaleX(1); }
+.ni svg { width:22px; height:22px; stroke:var(--g3); fill:none; stroke-width:1.5; transition:stroke 0.2s; }
+.ni.active svg { stroke:var(--red); }
+.ni-lbl { font-family:var(--fm); font-size:9px; letter-spacing:1px; color:var(--g3); text-transform:uppercase; transition:color 0.2s; }
+.ni.active .ni-lbl { color:var(--red); }
+
+/* TABS */
+.tab { display:none; animation:rise 0.2s ease; }
+.tab.on { display:block; }
+@keyframes rise { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* TOAST */
+#toast {
+  position:fixed; bottom:84px; left:50%; transform:translateX(-50%);
+  background:var(--red); color:var(--w);
+  padding:9px 22px; border-radius:3px;
+  font-family:var(--fm); font-size:11px; letter-spacing:2px;
+  opacity:0; transition:opacity 0.3s; z-index:500; white-space:nowrap;
+  pointer-events:none;
+}
+
+/* SECTION HEADERS */
+.sh { display:flex; justify-content:space-between; align-items:center; padding:22px 18px 10px; }
+.sh-title { font-family:var(--fd); font-size:19px; letter-spacing:2px; color:var(--g2); }
+.sh-title b { color:var(--red); font-weight:400; }
+
+/* HOME TAB */
+.date-area { padding:20px 18px 0; display:flex; justify-content:space-between; align-items:flex-end; }
+.date-day { font-family:var(--fd); font-size:52px; line-height:1; letter-spacing:2px; }
+.date-full { font-family:var(--fm); font-size:10px; color:var(--g2); letter-spacing:1px; margin-top:3px; text-transform:uppercase; }
+.wk-num { font-family:var(--fd); font-size:34px; color:var(--red); line-height:1; text-align:right; }
+.wk-lbl { font-family:var(--fm); font-size:9px; color:var(--g3); text-transform:uppercase; letter-spacing:1px; }
+
+.quote-card {
+  margin:16px 18px 0;
+  background:var(--s1); border:1px solid var(--bdr); border-left:3px solid var(--red);
+  border-radius:4px; padding:16px 18px;
+  position:relative; overflow:hidden;
+}
+.quote-card::before {
+  content:'"'; position:absolute; right:12px; top:-16px;
+  font-family:var(--fd); font-size:110px; color:var(--red); opacity:0.07; line-height:1;
+}
+.q-lbl { font-family:var(--fm); font-size:9px; letter-spacing:2px; color:var(--red); margin-bottom:9px; }
+.q-text { font-family:var(--fb); font-style:italic; font-size:16px; line-height:1.55; color:var(--g1); }
+
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:16px 18px 0; }
+.stat-box { background:var(--s1); border:1px solid var(--bdr); border-radius:4px; padding:13px 10px; text-align:center; }
+.stat-n { font-family:var(--fd); font-size:38px; line-height:1; color:var(--red); }
+.stat-l { font-family:var(--fm); font-size:9px; letter-spacing:1px; color:var(--g2); text-transform:uppercase; margin-top:3px; }
+
+/* TODAY PREVIEW */
+.tp { margin:0 18px; border-radius:4px; overflow:hidden; border:1px solid var(--bdr); }
+.tp-head {
+  background:var(--red); padding:11px 15px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.tp-day { font-family:var(--fd); font-size:22px; letter-spacing:2px; }
+.tp-sub { font-family:var(--fm); font-size:9px; color:rgba(255,255,255,0.8); letter-spacing:0.5px; margin-top:2px; }
+.tp-count { font-family:var(--fd); font-size:38px; line-height:1; }
+.tp-countlbl { font-family:var(--fm); font-size:9px; opacity:0.8; text-align:center; }
+.tp-body { background:var(--s1); }
+.mi { display:flex; justify-content:space-between; align-items:center; padding:7px 15px; border-bottom:1px solid var(--bdr); font-size:14px; font-weight:400; }
+.mi:last-child { border-bottom:none; }
+.mi-sets { font-family:var(--fm); font-size:10px; color:var(--g2); }
+
+/* PRIORITIES */
+.prio-list { margin:0 18px; }
+.prio-item { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--bdr); }
+.prio-item:last-child { border-bottom:none; }
+.prio-n { font-family:var(--fd); font-size:26px; color:var(--red); width:30px; text-align:center; line-height:1; }
+.prio-name { flex:1; font-family:var(--fb); font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; }
+.prio-bar-bg { width:70px; height:3px; background:var(--s3); border-radius:2px; overflow:hidden; flex-shrink:0; }
+.prio-bar { height:100%; background:var(--red); border-radius:2px; transition:width 1.1s ease; }
+
+/* RULES */
+.rules-wrap { margin:0 18px 24px; background:var(--s1); border:1px solid var(--bdr); border-radius:4px; overflow:hidden; }
+.rule-item { display:flex; gap:13px; padding:11px 15px; border-bottom:1px solid var(--bdr); align-items:flex-start; }
+.rule-item:last-child { border-bottom:none; }
+.rule-n { font-family:var(--fd); font-size:22px; color:var(--red); line-height:1; width:18px; flex-shrink:0; }
+.rule-t { font-family:var(--fb); font-size:14px; font-weight:500; line-height:1.45; padding-top:2px; }
+
+/* TODAY WORKOUT TAB */
+.wo-hdr {
+  padding:22px 18px 20px;
+  background:linear-gradient(160deg,#160000 0%,var(--bg) 70%);
+  position:relative; overflow:hidden;
+}
+.wo-hdr::before {
+  content:''; position:absolute; inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 28px,rgba(255,32,32,0.025) 28px,rgba(255,32,32,0.025) 29px);
+}
+.wo-tag {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--red); padding:4px 11px; border-radius:2px;
+  font-family:var(--fm); font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:11px; position:relative;
+}
+.wo-title { font-family:var(--fd); font-size:46px; letter-spacing:3px; line-height:1; position:relative; }
+.wo-muscles { font-family:var(--fm); font-size:10px; letter-spacing:1.5px; color:var(--g2); text-transform:uppercase; margin-top:5px; position:relative; }
+
+.ex-list { padding:0 18px 20px; }
+.ex-card { background:var(--s1); border:1px solid var(--bdr); border-radius:4px; margin-bottom:9px; overflow:hidden; transition:border-color 0.2s; }
+.ex-card.done { border-color:var(--red-b); }
+.ex-card-hdr { display:flex; align-items:center; padding:13px 14px; cursor:pointer; gap:11px; }
+.ex-n { font-family:var(--fd); font-size:20px; color:var(--g3); width:22px; text-align:center; line-height:1; flex-shrink:0; }
+.ex-inf { flex:1; min-width:0; }
+.ex-name { font-family:var(--fb); font-size:15px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ex-sets-lbl { font-family:var(--fm); font-size:10px; color:var(--g2); margin-top:2px; }
+.ex-chk { width:24px; height:24px; border:2px solid var(--g3); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
+.ex-card.done .ex-chk { border-color:var(--red); background:var(--red); }
+.ex-chk svg { width:11px; height:11px; stroke:var(--w); fill:none; stroke-width:2.5; }
+
+.ex-form {
+  max-height:0; overflow:hidden;
+  transition:max-height 0.3s ease;
+  border-top:0px solid var(--bdr);
+}
+.ex-card.open .ex-form { max-height:420px; border-top:1px solid var(--bdr); }
+.ex-form-inner { padding:13px 14px 14px; }
+
+.log-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:11px; }
+.lf label { display:block; font-family:var(--fm); font-size:9px; letter-spacing:1.5px; color:var(--g2); text-transform:uppercase; margin-bottom:5px; }
+.lf input {
+  width:100%; background:var(--s2); border:1px solid var(--bdr); border-radius:3px;
+  color:var(--w); font-family:var(--fm); font-size:15px; padding:8px 8px;
+  text-align:center; outline:none; transition:border-color 0.2s; appearance:none;
+}
+.lf input:focus { border-color:var(--red); }
+.log-note label { display:block; font-family:var(--fm); font-size:9px; letter-spacing:1.5px; color:var(--g2); text-transform:uppercase; margin-bottom:5px; }
+.log-note textarea {
+  width:100%; background:var(--s2); border:1px solid var(--bdr); border-radius:3px;
+  color:var(--g1); font-family:var(--fb); font-size:14px; padding:8px 10px;
+  outline:none; resize:none; height:58px; transition:border-color 0.2s;
+  margin-bottom:11px;
+}
+.log-note textarea:focus { border-color:var(--red); }
+.log-foot { display:flex; justify-content:space-between; align-items:center; }
+.pr-tog { display:flex; align-items:center; gap:7px; cursor:pointer; padding:6px 0; user-select:none; }
+.pr-box { width:18px; height:18px; border:2px solid var(--g3); border-radius:3px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.pr-tog.on .pr-box { border-color:var(--red); background:var(--red); }
+.pr-box svg { width:10px; height:10px; stroke:var(--w); fill:none; stroke-width:2.5; }
+.pr-lbl { font-family:var(--fm); font-size:10px; letter-spacing:0.5px; color:var(--g2); }
+.pr-tog.on .pr-lbl { color:var(--red); }
+.save-btn {
+  background:var(--red); color:var(--w); border:none; border-radius:3px;
+  padding:8px 20px; font-family:var(--fm); font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; cursor:pointer; transition:opacity 0.2s;
+}
+.save-btn:active { opacity:0.8; }
+
+/* PROGRAM TAB */
+.week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; padding:18px; }
+.dd {
+  aspect-ratio:1; border-radius:3px; background:var(--s2); border:1px solid var(--bdr);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; gap:1px;
+}
+.dd.today { border-color:var(--red-b); }
+.dd.today .dd-l { color:var(--w); }
+.dd-l { font-family:var(--fd); font-size:13px; color:var(--g2); line-height:1; }
+
+.acc { margin:0 18px 10px; background:var(--s1); border:1px solid var(--bdr); border-radius:4px; overflow:hidden; }
+.acc.today-acc { border-color:var(--red-b); }
+.acc-hdr { display:flex; align-items:center; padding:14px; cursor:pointer; gap:12px; }
+.acc-badge { font-family:var(--fm); font-size:9px; letter-spacing:1px; background:var(--s3); color:var(--g2); padding:3px 7px; border-radius:2px; text-transform:uppercase; flex-shrink:0; }
+.today-acc .acc-badge { background:var(--red); color:var(--w); }
+.acc-inf { flex:1; }
+.acc-name { font-family:var(--fd); font-size:21px; letter-spacing:2px; line-height:1; }
+.acc-sub { font-family:var(--fm); font-size:10px; color:var(--g2); letter-spacing:0.5px; margin-top:2px; }
+.acc-chev { width:18px; height:18px; stroke:var(--g3); fill:none; stroke-width:2; flex-shrink:0; transition:transform 0.2s; }
+.acc.open .acc-chev { transform:rotate(180deg); stroke:var(--red); }
+.acc-body { max-height:0; overflow:hidden; transition:max-height 0.35s ease; border-top:0px solid var(--bdr); }
+.acc.open .acc-body { max-height:900px; border-top:1px solid var(--bdr); }
+.prog-ex { display:flex; gap:11px; padding:8px 14px; border-bottom:1px solid var(--bdr); align-items:flex-start; }
+.prog-ex:last-child { border-bottom:none; }
+.prog-i { font-family:var(--fm); font-size:9px; color:var(--g3); width:14px; text-align:right; padding-top:3px; flex-shrink:0; }
+.prog-n { flex:1; font-family:var(--fb); font-size:14px; font-weight:500; }
+.prog-s { font-family:var(--fm); font-size:11px; color:var(--red); white-space:nowrap; flex-shrink:0; }
+
+/* LOG HISTORY TAB */
+.log-hist { padding:18px; }
+.ldg-group { margin-bottom:24px; }
+.ldg-label { font-family:var(--fd); font-size:18px; letter-spacing:2px; color:var(--g2); padding-bottom:8px; border-bottom:1px solid var(--bdr); margin-bottom:11px; }
+.lec { background:var(--s1); border:1px solid var(--bdr); border-radius:4px; padding:13px; margin-bottom:9px; }
+.lec-name { font-family:var(--fb); font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:7px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.pr-badge { background:var(--red); color:var(--w); font-family:var(--fm); font-size:8px; letter-spacing:1.5px; padding:2px 6px; border-radius:2px; }
+.lec-stats { display:flex; gap:14px; font-family:var(--fm); font-size:11px; color:var(--g2); flex-wrap:wrap; }
+.lec-note { margin-top:7px; font-family:var(--fb); font-style:italic; font-size:13px; color:var(--g3); }
+.empty-st { text-align:center; padding:60px 20px; }
+.empty-t { font-family:var(--fd); font-size:34px; letter-spacing:3px; color:var(--g3); }
+.empty-s { font-family:var(--fm); font-size:10px; color:var(--g3); letter-spacing:1px; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-name">MAINAK<em>.</em></div>
+    <div class="hdr-sub">FORGE YOUR PHYSIQUE</div>
+  </div>
+  <div class="hdr-streak">
+    <div class="streak-dot"></div>
+    <span class="streak-label">STREAK</span>
+    <span class="streak-num" id="streakHdr">0</span>
+  </div>
+</header>
+
+<div id="toast">SAVED ✓</div>
+
+<main>
+  <!-- HOME -->
+  <div id="tab-home" class="tab on">
+    <div class="date-area">
+      <div>
+        <div class="date-day" id="dateDayName">FRIDAY</div>
+        <div class="date-full" id="dateFull">JUNE 05, 2026</div>
+      </div>
+      <div style="text-align:right">
+        <div class="wk-lbl">WEEK</div>
+        <div class="wk-num" id="weekNum">W23</div>
+      </div>
+    </div>
+
+    <div class="sh" style="padding-bottom:8px"><div class="sh-title">DAILY <b>FUEL</b></div></div>
+    <div class="quote-card">
+      <div class="q-lbl">🔥 TODAY'S TRUTH</div>
+      <div class="q-text" id="dailyQuote">Loading...</div>
+    </div>
+
+    <div class="sh" style="padding-top:18px; padding-bottom:8px"><div class="sh-title">MY <b>STATS</b></div></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-n" id="statStreak">0</div><div class="stat-l">Streak</div></div>
+      <div class="stat-box"><div class="stat-n" id="statWeek">0</div><div class="stat-l">This Week</div></div>
+      <div class="stat-box"><div class="stat-n" id="statTotal">0</div><div class="stat-l">Total</div></div>
+    </div>
+
+    <div class="sh"><div class="sh-title">TODAY'S <b>WORKOUT</b></div></div>
+    <div id="todayPreview"></div>
+
+    <div class="sh"><div class="sh-title">PHYSIQUE <b>PRIORITIES</b></div></div>
+    <div class="prio-list" id="prioList"></div>
+
+    <div class="sh" style="margin-top:8px"><div class="sh-title">NON-<b>NEGOTIABLE</b></div></div>
+    <div class="rules-wrap" id="rulesList"></div>
+
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- TODAY WORKOUT -->
+  <div id="tab-today" class="tab">
+    <div id="todayWorkout"></div>
+  </div>
+
+  <!-- PROGRAM -->
+  <div id="tab-program" class="tab">
+    <div class="week-strip" id="weekStrip"></div>
+    <div id="programAccs"></div>
+    <div style="height:10px"></div>
+  </div>
+
+  <!-- LOG HISTORY -->
+  <div id="tab-log" class="tab">
+    <div class="log-hist" id="logHist"></div>
+  </div>
+</main>
+
+<nav class="nav">
+  <div class="ni active" onclick="go('home',this)">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg>
+    <span class="ni-lbl">Home</span>
+  </div>
+  <div class="ni" onclick="go('today',this)">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+    <span class="ni-lbl">Today</span>
+  </div>
+  <div class="ni" onclick="go('program',this)">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+    <span class="ni-lbl">Program</span>
+  </div>
+  <div class="ni" onclick="go('log',this)">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
+    <span class="ni-lbl">Log</span>
+  </div>
+</nav>
+
+<script>
+// ───── QUOTES ─────
+const QUOTES = [
+  "If you're not adding weight to the bar every month, you're not building — you're just exercising.",
+  "Your lateral delts won't grow from weights you can hold comfortably. Make the burn the entire point.",
+  "The physique you want doesn't require a better program. It requires you to stop changing this one.",
+  "The mirror doesn't care about your motivation. It only records what you actually did.",
+  "160g of protein on rest days matters more than 160g on gym days. Most people get this backwards.",
+  "Skipping legs doesn't make you look better. It makes you look assembled from spare parts.",
+  "If deadlifts still scare you, your back will stay flat. That's the deal.",
+  "Consistency is just showing up when you don't want to. 80% of this game is exactly that simple.",
+  "Your lats drag you into a V-taper or keep you looking square. They don't care about your preference.",
+  "The reason your physique looks the same after a year is that you changed programs 11 times.",
+  "OHP numbers going up means shoulders getting wider. No secret — just progressive overload.",
+  "A calorie deficit with 80g protein is just weight loss. You're trying to build something different.",
+  "Every rep you stop early because it's uncomfortable is practice for quitting life early.",
+  "Arms grow last because you keep neglecting the compounds that build them first.",
+  "Three months in and disappointed? The program said six. You agreed. Execute.",
+  "The compound lifts are the architecture. Everything else is interior design. Don't skip architecture.",
+  "Weak areas stay weak because you rush through them. Lateral raises are not a finisher — they're the work.",
+  "Six months of this program done consistently will do more than 3 years of program hopping.",
+  "You don't need a deload. You need to stop calling skipped sessions a deload.",
+  "Recovery means sleep and food, not fewer sessions. You're not overtrained — you're undereating.",
+  "Every PR on bench, OHP, and rows is a brick in the physique you want. Miss the PR, miss the brick.",
+  "There's no 'my genetics aren't good.' There's 'I haven't run the program long enough.'",
+  "Progressive overload monthly isn't a goal. It's a non-negotiable. You wrote it down yourself.",
+  "Face pulls and band pull-aparts aren't optional. They're why your shoulders still work in year three.",
+  "Six months from now you'll have the physique or the excuses. Start deciding which one right now.",
+  "The guy with traps that fill his shirts didn't shrug light. Add weight to the shrug.",
+  "A deload is earned by months of hard training — not taken because last week was inconvenient.",
+  "Your program is not the problem. Your execution is the program.",
+  "Every time you hit protein on a day you didn't want to, you're paying yourself first.",
+  "Nobody gets to skip the boring stuff — the shrugs, the face pulls, the lateral raises. That's exactly where the physique is built.",
+  "You can't optimize your way to a physique. You can only execute your way there.",
+  "The difference between where you are and where you want to be is measured in months of this program, not weeks.",
+  "Upper chest priority means incline press has to get heavier, not just harder to count.",
+  "If your squat numbers haven't moved, your legs haven't grown. Math is brutal but it doesn't lie.",
+  "You know what to do. The gym is open. Stop negotiating with yourself."
+];
+
+// ───── WORKOUT DATA ─────
+const P = [
+  {
+    d:'SUN', name:'REST', sub:'FULL RECOVERY', rest:true,
+    notes:['Sleep 7–9 hours','Hit protein 160g+','Hydration','Light walking','Recovery — let it work']
+  },
+  {
+    d:'MON', name:'PUSH A', sub:'CHEST · LATERAL DELTS · TRICEPS',
+    ex:[
+      {n:'Flat Barbell Bench Press',s:4,r:'5–7'},
+      {n:'Standing Barbell OHP',s:4,r:'5–7'},
+      {n:'Incline Barbell / DB Press',s:4,r:'8–10'},
+      {n:'Cable Lateral Raise',s:4,r:'12–15'},
+      {n:'Low-to-High Cable Fly',s:3,r:'12–15'},
+      {n:'Overhead Cable Tricep Ext.',s:3,r:'12–15'},
+      {n:'Rope Tricep Pushdown',s:3,r:'10–15'}
+    ]
+  },
+  {
+    d:'TUE', name:'PULL A', sub:'LAT WIDTH · BACK · TRAPS · BICEPS',
+    ex:[
+      {n:'Wide-Grip Lat Pulldown',s:5,r:'6–8'},
+      {n:'Seated Cable Row',s:4,r:'8–12'},
+      {n:'Dumbbell Shrug',s:3,r:'12–15'},
+      {n:'Face Pull',s:4,r:'15–20'},
+      {n:'Chest-Supported Row',s:3,r:'10–12'},
+      {n:'EZ-Bar Curl',s:3,r:'8–12'},
+      {n:'Preacher Curl',s:3,r:'10–12'}
+    ]
+  },
+  {
+    d:'WED', name:'LEGS', sub:'LEGS · CORE · CALVES',
+    ex:[
+      {n:'Barbell Back Squat',s:4,r:'5–7'},
+      {n:'Romanian Deadlift',s:4,r:'8–10'},
+      {n:'Hip Thrust',s:3,r:'8–12'},
+      {n:'Leg Press',s:3,r:'12–15'},
+      {n:'Leg Curl',s:3,r:'12–15'},
+      {n:'Standing Calf Raise',s:4,r:'12–15'},
+      {n:'Cable Crunch',s:3,r:'12–15'},
+      {n:'Hanging Leg Raise',s:3,r:'10–15'}
+    ]
+  },
+  {
+    d:'THU', name:'PUSH B', sub:'OHP PRIORITY · UPPER CHEST · SHOULDERS',
+    ex:[
+      {n:'Seated DB Overhead Press',s:4,r:'8–10'},
+      {n:'Incline Dumbbell Press',s:4,r:'8–12'},
+      {n:'Flat / Low-Incline DB Press',s:4,r:'10–12'},
+      {n:'Cable Lateral Raise',s:5,r:'15–20'},
+      {n:'Reverse Pec Deck',s:3,r:'15–20'},
+      {n:'Mid Cable Fly',s:3,r:'12–15'},
+      {n:'Close-Grip Bench Press',s:3,r:'8–12'},
+      {n:'Rope Tricep Pushdown',s:2,r:'12–15'}
+    ]
+  },
+  {
+    d:'FRI', name:'PULL B', sub:'DEADLIFT · BACK THICKNESS · TRAPS',
+    ex:[
+      {n:'Conventional Deadlift',s:4,r:'4–6'},
+      {n:'Neutral-Grip Lat Pulldown',s:4,r:'8–12'},
+      {n:'Seated Cable Row',s:4,r:'10–12'},
+      {n:'Dumbbell Shrug',s:3,r:'12–15'},
+      {n:'Reverse Pec Deck',s:3,r:'15–20'},
+      {n:'Hammer Curl',s:3,r:'10–12'},
+      {n:'Incline Dumbbell Curl',s:3,r:'8–12'}
+    ]
+  },
+  {
+    d:'SAT', name:'ATHLETIC', sub:'CONDITIONING · POSTURE · NECK · CORE',
+    ex:[
+      {n:'Jump Rope HIIT',s:'6–8',r:'Rounds'},
+      {n:'Band Pull-Apart',s:100,r:'Total Reps'},
+      {n:'Wall Slides + Thoracic Rotations',s:3,r:'Sets'},
+      {n:'Neck Flexion',s:3,r:'15–20'},
+      {n:'Neck Extension',s:3,r:'15–20'},
+      {n:'Lateral Neck Raise',s:3,r:'15–20'},
+      {n:'Pallof Press',s:3,r:'10–15/side'},
+      {n:'Side Plank',s:3,r:'30–45s'},
+      {n:'External Rotation',s:2,r:'15–20'},
+      {n:'Internal Rotation',s:2,r:'15–20'},
+      {n:'Hip Flexor Stretch',s:null,r:'Mobility'},
+      {n:'Hamstring Stretch',s:null,r:'Mobility'},
+      {n:'Piriformis Stretch',s:null,r:'Mobility'}
+    ]
+  }
+];
+
+const PRIORITIES = ['LATERAL DELTS','UPPER CHEST','LATS / V-TAPER','TRAPS','ARMS','MID CHEST','LEGS'];
+
+const RULES = [
+  'Progressive overload every month.',
+  'Stay in a calorie deficit until lean.',
+  'Hit protein daily.',
+  'No changing the program every week.',
+  'Run this for at least 6 months.',
+  'Get stronger: Bench · OHP · Incline · Pulldowns · Rows · Squats · Deadlifts.',
+  'The physique is built through execution, not endless optimization.'
+];
+
+// ───── STATE ─────
+let logs = {};
+try { logs = JSON.parse(localStorage.getItem('mf_logs') || '{}'); } catch(e) {}
+
+// ───── UTILS ─────
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+
+function weekNum(d) {
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+}
+
+function dayOfYear(d) {
+  const s = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d - s) / 86400000);
+}
+
+function fmtDate(d) {
+  const DAYS = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  const MONS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return { day: DAYS[d.getDay()], full: `${MONS[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}, ${d.getFullYear()}` };
+}
+
+function calcStats() {
+  const keys = Object.keys(logs);
+  const dates = [...new Set(keys.map(k => k.split('_')[0]))];
+  const total = dates.length;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const wkStart = new Date(now); wkStart.setDate(now.getDate() - now.getDay());
+  const thisWeek = dates.filter(d => new Date(d) >= wkStart).length;
+  const sorted = dates.sort().reverse();
+  let streak = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    const diff = Math.floor((now - new Date(sorted[i])) / 86400000);
+    if (diff <= streak + 1) streak++;
+    else break;
+  }
+  return { total, thisWeek, streak };
+}
+
+function saveLogs() { try { localStorage.setItem('mf_logs', JSON.stringify(logs)); } catch(e) {} }
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 1800);
+}
+
+// ───── QUOTE ─────
+function getQuote() {
+  const today = todayKey();
+  const cached = localStorage.getItem('mf_q_' + today);
+  if (cached) return cached;
+  const q = QUOTES[dayOfYear(new Date()) % QUOTES.length];
+  localStorage.setItem('mf_q_' + today, q);
+  return q;
+}
+
+// ───── RENDER HOME ─────
+function renderHome() {
+  const now = new Date();
+  const { day, full } = fmtDate(now);
+  document.getElementById('dateDayName').textContent = day;
+  document.getElementById('dateFull').textContent = full;
+  document.getElementById('weekNum').textContent = 'W' + weekNum(now);
+  document.getElementById('dailyQuote').textContent = getQuote();
+
+  const { total, thisWeek, streak } = calcStats();
+  ['streakHdr','statStreak'].forEach(id => document.getElementById(id).textContent = streak);
+  document.getElementById('statWeek').textContent = thisWeek;
+  document.getElementById('statTotal').textContent = total;
+
+  // Today preview
+  const tw = P[now.getDay()];
+  const prev = document.getElementById('todayPreview');
+  if (tw.rest) {
+    prev.innerHTML = `<div style="margin:0 18px; background:var(--s1); border:1px solid var(--bdr); border-radius:4px; padding:26px 18px; text-align:center;"><div style="font-family:var(--fd); font-size:40px; letter-spacing:3px; color:var(--g3)">REST DAY</div><div style="font-family:var(--fm); font-size:10px; color:var(--g3); letter-spacing:1px; margin-top:8px">SLEEP · PROTEIN · RECOVER</div></div>`;
+  } else {
+    const exHtml = tw.ex.slice(0,5).map(e => `<div class="mi"><span>${e.n}</span><span class="mi-sets">${e.s}×${e.r}</span></div>`).join('');
+    const more = tw.ex.length > 5 ? `<div style="padding:8px 15px; font-family:var(--fm); font-size:10px; color:var(--g3); text-align:center">+${tw.ex.length-5} more exercises</div>` : '';
+    prev.innerHTML = `<div class="tp"><div class="tp-head"><div><div class="tp-day">${tw.name}</div><div class="tp-sub">${tw.sub}</div></div><div style="text-align:center"><div class="tp-count">${tw.ex.length}</div><div class="tp-countlbl">EXERCISES</div></div></div><div class="tp-body">${exHtml}${more}</div></div>`;
+  }
+
+  // Priorities
+  const bw = [100,85,71,57,43,29,14];
+  document.getElementById('prioList').innerHTML = PRIORITIES.map((p,i) =>
+    `<div class="prio-item"><div class="prio-n">#${i+1}</div><div class="prio-name">${p}</div><div class="prio-bar-bg"><div class="prio-bar" style="width:0%" data-w="${bw[i]}%"></div></div></div>`
+  ).join('');
+  setTimeout(() => {
+    document.querySelectorAll('.prio-bar').forEach(b => { b.style.width = b.dataset.w; });
+  }, 120);
+
+  // Rules
+  document.getElementById('rulesList').innerHTML = RULES.map((r,i) =>
+    `<div class="rule-item"><div class="rule-n">${i+1}</div><div class="rule-t">${r}</div></div>`
+  ).join('');
+}
+
+// ───── RENDER TODAY ─────
+function renderToday() {
+  const now = new Date();
+  const tw = P[now.getDay()];
+  const today = todayKey();
+  const el = document.getElementById('todayWorkout');
+
+  if (tw.rest) {
+    el.innerHTML = `<div class="wo-hdr" style="min-height:220px; display:flex; flex-direction:column; justify-content:center"><div class="wo-tag"><span>●</span>TODAY</div><div class="wo-title">REST DAY</div><div class="wo-muscles">SLEEP · PROTEIN 160G+ · HYDRATE · WALK</div></div>`;
+    return;
+  }
+
+  const dname = ['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()];
+  el.innerHTML = `<div class="wo-hdr"><div class="wo-tag"><span>●</span>${dname} — TODAY</div><div class="wo-title">${tw.name}</div><div class="wo-muscles">${tw.sub}</div></div><div class="ex-list" id="exListEl"></div>`;
+
+  const exList = document.getElementById('exListEl');
+  tw.ex.forEach((ex, i) => {
+    const logKey = `${today}_${tw.d}_${i}`;
+    const saved = logs[logKey];
+    const isDone = !!saved;
+    const card = document.createElement('div');
+    card.className = `ex-card${isDone ? ' done' : ''}`;
+    card.id = `ec-${i}`;
+    card.innerHTML = `
+      <div class="ex-card-hdr" onclick="toggleEx(${i})">
+        <div class="ex-n">${i+1}</div>
+        <div class="ex-inf">
+          <div class="ex-name">${ex.n}</div>
+          <div class="ex-sets-lbl">${ex.s} SETS × ${ex.r} REPS</div>
+        </div>
+        <div class="ex-chk"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
+      </div>
+      <div class="ex-form" id="ef-${i}">
+        <div class="ex-form-inner">
+          <div class="log-grid">
+            <div class="lf"><label>KG / LBS</label><input type="number" id="w-${i}" value="${saved?.w||''}" placeholder="—" inputmode="decimal"></div>
+            <div class="lf"><label>Sets Done</label><input type="number" id="s-${i}" value="${saved?.s||ex.s}" placeholder="${ex.s}" inputmode="numeric"></div>
+            <div class="lf"><label>Reps</label><input type="text" id="r-${i}" value="${saved?.r||''}" placeholder="${ex.r}"></div>
+          </div>
+          <div class="log-note">
+            <label>Notes / How It Felt</label>
+            <textarea id="n-${i}" placeholder="felt strong on set 3... form slipped...">${saved?.n||''}</textarea>
+          </div>
+          <div class="log-foot">
+            <div class="pr-tog${saved?.pr?' on':''}" id="pr-${i}" onclick="togPR(${i})">
+              <div class="pr-box"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
+              <span class="pr-lbl">🏆 PR</span>
+            </div>
+            <button class="save-btn" onclick="saveEx(${i},'${logKey}')">SAVE</button>
+          </div>
+        </div>
+      </div>`;
+    exList.appendChild(card);
+    if (isDone) card.classList.add('open');
+  });
+}
+
+function toggleEx(i) {
+  const c = document.getElementById(`ec-${i}`);
+  c.classList.toggle('open');
+}
+
+function togPR(i) {
+  document.getElementById(`pr-${i}`).classList.toggle('on');
+}
+
+function saveEx(i, lk) {
+  logs[lk] = {
+    w: document.getElementById(`w-${i}`).value,
+    s: document.getElementById(`s-${i}`).value,
+    r: document.getElementById(`r-${i}`).value,
+    n: document.getElementById(`n-${i}`).value,
+    pr: document.getElementById(`pr-${i}`).classList.contains('on'),
+    ts: Date.now()
+  };
+  saveLogs();
+  document.getElementById(`ec-${i}`).classList.add('done');
+  const btn = document.querySelector(`#ec-${i} .save-btn`);
+  btn.textContent = 'SAVED ✓'; btn.style.background = '#1c5c1c';
+  setTimeout(() => { btn.textContent = 'SAVE'; btn.style.background = ''; }, 2000);
+  showToast();
+  const { streak } = calcStats();
+  document.getElementById('streakHdr').textContent = streak;
+}
+
+// ───── RENDER PROGRAM ─────
+function renderProgram() {
+  const todayI = new Date().getDay();
+  const DSHORT = ['S','M','T','W','T','F','S'];
+  document.getElementById('weekStrip').innerHTML = DSHORT.map((d,i) =>
+    `<div class="dd${i===todayI?' today':''}" onclick="scrollToAcc(${i})"><span class="dd-l">${d}</span></div>`
+  ).join('');
+
+  const ORDER = [1,2,3,4,5,6,0];
+  document.getElementById('programAccs').innerHTML = ORDER.map(di => {
+    const w = P[di];
+    const isToday = di === todayI;
+    const bodyHtml = w.rest
+      ? w.notes.map(n => `<div style="padding:8px 14px; font-family:var(--fm); font-size:11px; color:var(--g2); border-bottom:1px solid var(--bdr)">• ${n}</div>`).join('')
+      : w.ex.map((e,i) => `<div class="prog-ex"><span class="prog-i">${i+1}</span><span class="prog-n">${e.n}</span><span class="prog-s">${e.s}×${e.r}</span></div>`).join('');
+    return `<div class="acc${isToday?' today-acc':''}" id="acc-${di}">
+      <div class="acc-hdr" onclick="togAcc(${di})">
+        <div class="acc-badge">${w.d}</div>
+        <div class="acc-inf"><div class="acc-name">${w.name}</div><div class="acc-sub">${w.sub}</div></div>
+        <svg class="acc-chev" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+      </div>
+      <div class="acc-body">${bodyHtml}</div>
+    </div>`;
+  }).join('');
+
+  const todayEl = document.getElementById(`acc-${todayI}`);
+  if (todayEl) todayEl.classList.add('open');
+}
+
+function togAcc(di) { document.getElementById(`acc-${di}`).classList.toggle('open'); }
+function scrollToAcc(di) {
+  const el = document.getElementById(`acc-${di}`);
+  if (el) { el.classList.add('open'); el.scrollIntoView({ behavior:'smooth', block:'start' }); }
+}
+
+// ───── RENDER LOG ─────
+function renderLog() {
+  const el = document.getElementById('logHist');
+  const allKeys = Object.keys(logs);
+  if (!allKeys.length) {
+    el.innerHTML = `<div class="empty-st"><div class="empty-t">NO LOGS YET</div><div class="empty-s">LOG FROM THE TODAY TAB</div></div>`;
+    return;
+  }
+  const grouped = {};
+  allKeys.forEach(k => {
+    const date = k.split('_')[0];
+    if (!grouped[date]) grouped[date] = {};
+    grouped[date][k] = logs[k];
+  });
+  const sortedDates = Object.keys(grouped).sort().reverse();
+  const MONS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const DNAMES = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+  el.innerHTML = sortedDates.map(date => {
+    const d = new Date(date + 'T12:00:00');
+    const lbl = `${DNAMES[d.getDay()]} ${d.getDate()} ${MONS[d.getMonth()]} ${d.getFullYear()}`;
+    const entries = Object.entries(grouped[date]).map(([key, lg]) => {
+      const parts = key.split('_');
+      const dayCode = parts[1]; const exIdx = parseInt(parts[2]);
+      const wday = P.find(p => p.d === dayCode);
+      const exName = wday?.ex?.[exIdx]?.n || 'Exercise';
+      return `<div class="lec">
+        <div class="lec-name">${exName}${lg.pr?'<span class="pr-badge">PR</span>':''}</div>
+        <div class="lec-stats">${lg.w?`<span>⚖ ${lg.w}kg</span>`:''} ${lg.s?`<span>× ${lg.s} sets</span>`:''} ${lg.r?`<span>↻ ${lg.r} reps</span>`:''}</div>
+        ${lg.n?`<div class="lec-note">"${lg.n}"</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="ldg-group"><div class="ldg-label">${lbl}</div>${entries}</div>`;
+  }).join('');
+}
+
+// ───── TAB SWITCHING ─────
+function go(tab, navEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('on');
+  navEl.classList.add('active');
+  if (tab === 'today') renderToday();
+  if (tab === 'program') renderProgram();
+  if (tab === 'log') renderLog();
+  window.scrollTo(0, 0);
+}
+
+// ───── INIT ─────
+renderHome();
+</script>
+</body>
+</html>
